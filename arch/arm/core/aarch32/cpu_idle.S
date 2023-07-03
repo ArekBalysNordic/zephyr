@@ -116,8 +116,22 @@ SECTION_FUNC(TEXT, arch_cpu_idle)
 	 */
 #endif /* CONFIG_ARMV7_M_ARMV8_M_MAINLINE */
 
+	/* LR should never be 0 */
+	cmp lr, #0
+	bne	anku_skip_1
+	cpsid	i
+	b .
+anku_skip_1:
+
 	/* Enter low power state */
 	_sleep_if_allowed wfi
+
+	/* LR should never be 0 */
+	cmp lr, #0
+	bne	anku_skip_2
+	cpsid	i
+	b .
+anku_skip_2:
 
 	/*
 	 * Clear PRIMASK and flush instruction buffer to immediately service
@@ -125,6 +139,20 @@ SECTION_FUNC(TEXT, arch_cpu_idle)
 	 */
 	cpsie	i
 	isb
+
+	nop
+	nop
+	nop
+	nop
+	nop
+	nop
+
+	/* LR should never be 0 */
+	cmp lr, #0
+	bne	anku_skip_3
+	cpsid	i
+	b .
+anku_skip_3:
 
 	bx	lr
 
