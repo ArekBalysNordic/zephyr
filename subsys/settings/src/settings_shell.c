@@ -95,6 +95,8 @@ static int settings_read_callback(const char *key,
 		return 0;
 	}
 
+	shell_print(params->shell_ptr, "Size: %d", num_read_bytes);
+
 	switch (params->value_type) {
 	case SETTINGS_VALUE_HEX:
 		shell_hexdump(params->shell_ptr, buffer, num_read_bytes);
