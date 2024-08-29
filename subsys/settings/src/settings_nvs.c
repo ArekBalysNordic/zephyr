@@ -228,6 +228,8 @@ static int settings_nvs_save(struct settings_store *cs, const char *name,
 	/* Find out if we are doing a delete */
 	delete = ((value == NULL) || (val_len == 0));
 
+	LOG_ERR("save: %s (len: %d)", name, val_len);
+
 #if CONFIG_SETTINGS_NVS_NAME_CACHE
 	bool name_in_cache = false;
 
