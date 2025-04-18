@@ -6,6 +6,7 @@ zephyr_library_sources(
   entropy.c
   misc.c
   platform.c
+  openthread.c
   )
 
 zephyr_library_sources_ifndef(CONFIG_HDLC_RCP_IF
