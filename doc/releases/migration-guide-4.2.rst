@@ -304,9 +304,81 @@ Networking
   the server commands, enable :kconfig:option:`NET_ZPERF_SERVER`. If server support
   is not needed, :kconfig:option:`ZVFS_POLL_MAX` can possibly be reduced.
 
-* The OpenThread-related Kconfig options from ``subsys/net/l2/openthread/Kconfig`` have been moved to
-  ``modules/openthread/Kconfig``. All the Kconfig options remain the same. You can still use them in the
-  same way as before, but to modify them, use the new path in the menuconfig or guiconfig.
+OpenThread
+==========
+
+* The OpenThread stack integration in Zephyr has undergone a major refactor.
+  The implementation has been moved from the Zephyr networking layer (``subsys/net/l2/openthread/``)
+  to a dedicated module (``modules/openthread/platform/``).
+
+* OpenThread is now a standalone module in Zephyr.
+  It can be used independently of Zephyr's networking stack (L2 and IEEE802.15.4 shim layers).
+  This enables new use cases, such as applications that want to use OpenThread directly with their
+  own IEEE802.15.4 driver, or that do not need the full Zephyr networking stack.
+
+* Most functions in ``include/net/openthread.h`` have been deprecated.
+  These deprecated APIs are still available for backward compatibility, but new applications should
+  use the new APIs provided by the OpenThread module. The following list summarizes the changes:
+
+  * Mutex handling:
+    * Previously:
+      * ``openthread_api_mutex_lock``
+      * ``openthread_api_mutex_try_lock``
+      * ``openthread_api_mutex_unlock``
+    * Now use:
+      * ``openthread_mutex_lock``
+      * ``openthread_mutex_try_lock``
+      * ``openthread_mutex_unlock``
+  * OpenThread starting:
+    * Previously: ``openthread_start``
+    * Now use: ``openthread_run``
+  * Callback registration:
+    * Previously:
+      * ``openthread_state_changed_cb_register``
+      * ``openthread_state_changed_cb_unregister``
+    * Now use:
+      * ``openthread_state_change_callback_register``
+      * ``openthread_state_change_callback_unregister``
+  * Callback structure:
+    * Previously:
+      * ``openthread_state_changed_cb``
+    * Now use:
+      * ``openthread_state_changed_callback``
+  * The following ``openthread_context`` struct fields are deprecated and shall not be used in
+    new code anymore:
+    * ``instance``
+    * ``api_lock``
+    * ``work_q``
+    * ``api_work``
+    * ``state_change_cbs``
+  * The new functions that were not present before:
+    * ``openthread_init`` to initialize the OpenThread stack.
+    * ``openthread_stop`` to stop and disable the OpenThread stack.
+
+* The OpenThread-related Kconfig options from ``subsys/net/l2/openthread/Kconfig`` have been moved
+  to ``modules/openthread/Kconfig``. All the Kconfig options remain the same. You can still use them
+  in the same way as before, but to modify them, use the new path in the menuconfig or guiconfig.
+
+* If ``CONFIG_NET_L2_OPENTHREAD`` is enabled, Zephyr's L2 layer will use the new OpenThread module
+  API as its backend. The L2 layer no longer implements OpenThread itself, but delegates to the
+  module.
+
+* For existing applications using OpenThread via Zephyr's networking stack:
+  * Your application should continue to work, as the old APIs are still available for compatibility.
+    However, you are encouraged to migrate to the new APIs for future-proofing and to take advantage
+    of the new modular structure.
+  * Update any references to OpenThread Kconfig options to use the new path
+    (``modules/openthread/Kconfig``) in your configuration tools.
+* For applications using ``openthread_context`` or other deprecated APIs:
+  * Begin migrating to the new APIs listed above. The deprecated APIs will be removed in a future
+    release.
+  * Avoid direct use of ``openthread_context`` and related fields; use the new initialization and
+    callback registration functions instead.
+* For new applications or those wanting to use OpenThread without Zephyr L2:
+  * Use the new initialization (``openthread_init``), run (``openthread_run``), and callback
+    registration APIs.
+  * You can now use OpenThread directly, without enabling Zephyr's L2 or IEEE802.15.4 layers, if
+    your use case allows.
 
 SPI
 ===
